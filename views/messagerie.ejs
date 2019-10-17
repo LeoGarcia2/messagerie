@@ -1,0 +1,59 @@
+<%- include('header') -%>
+<section id="tchat">
+	<section id="tchat-wrapper"></section>
+	<form>
+		<input type="text">
+		<button type="submit">Poster</button>
+	</form>
+</section>
+
+<script src="/socket.io/socket.io.js"></script>
+<script
+src="https://code.jquery.com/jquery-3.3.1.min.js"
+integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+crossorigin="anonymous"></script>
+<script>
+	jQuery(document).ready(function(){
+		let socket = io.connect('http://127.0.0.1:4200/');
+		let pseudo = "<%= pseudo %>";
+	    //On récupère le pseudo depuis EJS.
+	    jQuery("form").on("submit", function(event){
+	    //Quand le formulaire est validé.
+    		event.preventDefault();
+    		//Stopper le comportement par défaut du formulaire.
+    		if(jQuery("#tchat input").val() != ""){
+    		//Si l'input n'est pas vide.
+    			let message = jQuery("#tchat input").val();
+    			//On récupère le message.
+			    afficherMessage(pseudo, message);
+			    //On affiche dans notre tchat le message que l'on vient de poster avec la fonction définie ci-après.
+			    jQuery("#tchat input").val("");
+			    //On vide l'input.
+    			socket.emit("envoi-message", {pseudo: pseudo, message: message});
+    			//On émet l'évènement socket.io "envoi-message" en transmettant le pseudo de l'émetteur et le message au serveur pour qu'il se charge de le transmettre aux autres clients.
+			}
+		});
+    	socket.on("connexion", function(participant){
+    		jQuery("#tchat-wrapper").append("<p>" + participant.pseudo + " s'est connecté.</p>");
+    		//Lorsque le serveur nous transmet l'information d'un nouvel arrivant, l'afficher.
+		});
+    	socket.on("reception-message", function(messageData){
+    		afficherMessage(messageData.pseudo, messageData.message);
+    		//Lorsque le serveur nous transmet un message, l'afficher avec la fonction définie ci-après.
+		});
+	    jQuery(window).on("beforeunload", function(){
+    		socket.emit("deconnexion", {pseudo: pseudo});
+			//Quand l'onglet courant est fermé, on informe le serveur de notre deconnexion.
+		});
+    	socket.on("deconnexion", function(participant){
+    		jQuery("#tchat-wrapper").append("<p>" + participant.pseudo + " s'est déconnecté.</p>");
+    	});
+    	function afficherMessage(pseudo, message){
+    		jQuery("#tchat-wrapper").append("<p class='message'><span class='messagePseudo'>" + pseudo + " dit :</span> " + message + "</p>");
+    		//Ajouter le message à la section d'id tchat-wrapper le pseudo et le message.
+    		jQuery("#tchat-wrapper").scrollTop(jQuery("#tchat-wrapper .message:last-child").offset().top + 200);
+	    	//Toujours scroller pour voir le dernier message.
+	}
+});
+</script>
+<%- include('footer') -%>

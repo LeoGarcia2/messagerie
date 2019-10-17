@@ -1,0 +1,43 @@
+<%- include('header') -%>
+<form action="/messagerie" method="post">
+	<label for="pseudo">Votre pseudo :</label>
+	<input type="text" name="pseudo"
+	id="pseudo" required>
+	<button type="submit">Connexion</button>
+	<p class="erreur"></p>
+</form>
+
+<script src="/socket.io/socket.io.js"></script>
+<script
+src="https://code.jquery.com/jquery-3.3.1.min.js"
+integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+crossorigin="anonymous"></script>
+<script>
+	jQuery(document).ready(function(){
+		let socket = io.connect('http://127.0.0.1:4200/');
+		let pseudo;
+		jQuery("form").on("submit", function(event){
+	    //Quand le formulaire est validé.
+		    event.preventDefault();
+		    //Stopper le comportement par défaut du formulaire.
+		    pseudo = jQuery("#pseudo").val();
+		    //Récupérer la valeur de l'input du pseudo.
+		    socket.emit("pseudo-choisi", {pseudo: pseudo});
+		    //Émettre l'évènement socket.io "pseudo-choisi" en transmettant le pseudo au serveur pour tester sa disponibilité.
+		    socket.on("pseudo-pris", function(pseudoChoisi){
+	    	//Écouter le retour du test de la disponibilité du pseudo, côté serveur quand le pseudo a été testé, l'évènement "pseudo-pris" est émis en réponse à "pseudo-choisi".
+	    		if(pseudoChoisi.pris){
+	    			jQuery("#pseudo").val("");
+	    			//Si le pseudo est pris vider l'input.
+	    			jQuery(".erreur").text("Ce pseudo est déjà pris !");
+	    			//Si le pseudo est pris afficher une erreur.
+				}else{
+					socket.emit("connexion", {pseudo: pseudo});
+					event.currentTarget.submit();
+	    			//Si le pseudo n'est pas pris exécuter l'envoi du formulaire.
+				}
+			});
+		});
+	});
+</script>
+<%- include('footer') -%>

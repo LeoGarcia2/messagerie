@@ -1,0 +1,28 @@
+*{
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+#tchat{
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+#tchat-wrapper{
+	width: 100%;
+	height: 100%;
+	overflow-y: scroll;
+	border-top: 1px solid #000;
+}
+.messagePseudo{
+	font-weight: bold;
+}
+.message{
+	font-size: 16px;
+}
+#tchat form, #tchat input, #tchat button{
+	display: block;
+	width: 100%;
+}
